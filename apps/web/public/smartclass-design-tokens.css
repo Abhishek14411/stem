@@ -1,0 +1,47 @@
+/* Shared SmartClass Buddy design tokens for the host and embedded learning modules. */
+:root {
+  --paper: #FBF6EA;
+  --surface: #FFFFFF;
+  --ink: #1B2A41;
+  --copper: #D9622B;
+  --copper-dark: #C45122;
+  --spark: #FFC233;
+  --spark-soft: #FFF4D0;
+  --teal: #12766B;
+  --teal-soft: #E5F3F0;
+  --alert: #C8372D;
+  --alert-soft: #FBE9E7;
+  --line: #E3D9C3;
+  --muted: #586477;
+  --white: #FFFFFF;
+  --r-xs: 8px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --r-pill: 999px;
+  --r-circle: 50%;
+  --bw: 2px;
+  --depth: 0 4px 0 var(--ink);
+  --depth-lg: 0 6px 0 var(--ink);
+  --depth-pressed: 0 1px 0 var(--ink);
+  --shadow-soft: 0 10px 26px rgb(27 42 65 / 9%);
+  --tap: 56px;
+  --font: "Mukta", "Noto Sans Devanagari", "Segoe UI", system-ui, sans-serif;
+  --fs-xs: 16px;
+  --fs-sm: 16px;
+  --fs-small: var(--fs-sm);
+  --fs-body: clamp(18px, 1.15vw + 14px, 22px);
+  --fs-h1: clamp(28px, 3.6vw + 8px, 44px);
+  --fs-h2: clamp(24px, 2vw + 12px, 32px);
+  --fs-h3: clamp(19px, 1.2vw + 12px, 24px);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  color-scheme: light;
+}

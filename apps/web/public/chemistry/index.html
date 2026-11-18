@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7f2">
+  <title>Chemistry Virtual Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #192923;
+      --muted: #68766f;
+      --paper: #f5f7f2;
+      --card: #fff;
+      --line: #e2e9e2;
+      --green: #1b7259;
+      --green-dark: #155943;
+      --mint: #e8f4ec;
+      --blue: #ddecf5;
+      --orange: #e89a52;
+      --red: #c7584c;
+      --shadow: 0 12px 35px rgba(32, 63, 47, .07);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); }
+    button, input, select { font: inherit; }
+    button, select, input[type="range"], input[type="checkbox"] { cursor: pointer; }
+    button:focus-visible, select:focus-visible, input:focus-visible {
+      outline: 3px solid #78b99a; outline-offset: 2px;
+    }
+    .app { display: grid; grid-template-columns: 276px minmax(0, 1fr); min-height: 100vh; }
+    .sidebar {
+      position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 26px 18px;
+      color: #e9f4ed; background: #193c32;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 0 8px 24px; }
+    .brand-mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 14px; background: #d8f0df; color: #1b654e; font-size: 22px; }
+    .brand strong { display: block; font-size: 15px; letter-spacing: -.02em; }
+    .brand small { display: block; margin-top: 3px; color: #b7cfc2; font-size: 11px; }
+    .nav-label { margin: 16px 10px 8px; color: #9cb9a9; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .class-picker { margin: 2px 7px 17px; }
+    .class-picker label { display: block; margin-bottom: 7px; color: #b7cfc2; font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .class-picker select { min-height: 40px; border-color: rgba(255,255,255,.2); color: #f0f7f2; background: #245143; }
+    .class-picker select option { color: var(--ink); background: white; }
+    .nav-list { display: grid; gap: 4px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0;
+      border-radius: 11px; color: #d5e5dc; background: transparent; text-align: left;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.08); }
+    .nav-item[aria-current="page"] { color: #143b30; background: #d8f0df; font-weight: 750; }
+    .nav-num { flex: 0 0 25px; display: grid; place-items: center; height: 25px; border-radius: 8px; background: rgba(255,255,255,.11); font-size: 11px; font-weight: 750; }
+    .nav-item[aria-current="page"] .nav-num { color: #1d644f; background: #bfe2ca; }
+    .nav-title { font-size: 12px; line-height: 1.3; }
+    .sidebar-note { margin: 26px 7px 0; padding: 14px; border: 1px solid rgba(255,255,255,.13); border-radius: 14px; color: #bfd2c7; font-size: 11px; line-height: 1.6; }
+    main { min-width: 0; padding: 25px clamp(18px, 4vw, 58px) 50px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 1200px; margin: auto auto 27px; }
+    .crumb { color: var(--muted); font-size: 12px; }
+    .offline-pill { display: flex; align-items: center; gap: 7px; padding: 8px 11px; border: 1px solid var(--line); border-radius: 99px; color: #47715e; background: white; font-size: 11px; font-weight: 650; }
+    .offline-dot { width: 7px; height: 7px; border-radius: 50%; background: #50a976; }
+    .content { max-width: 1200px; margin: auto; }
+    .module-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
+    .eyebrow { margin-bottom: 8px; color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(25px, 4vw, 38px); line-height: 1.13; letter-spacing: -.045em; }
+    .subtitle { max-width: 690px; margin: 10px 0 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
+    .grade-tag { flex: 0 0 auto; padding: 8px 12px; border-radius: 99px; color: #52665a; background: #e8eee7; font-size: 11px; font-weight: 750; }
+    .workspace { display: grid; grid-template-columns: minmax(280px, .82fr) minmax(350px, 1.18fr); gap: 18px; align-items: start; }
+    .panel { border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: var(--shadow); }
+    .controls-panel { padding: 20px; }
+    .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 16px; font-size: 15px; letter-spacing: -.02em; }
+    .step-tag { color: #7a8a80; font-size: 10px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .field { display: grid; gap: 7px; margin-bottom: 15px; }
+    .field label, .field-label { color: #46564d; font-size: 12px; font-weight: 700; }
+    .field small { color: #7a8980; font-size: 11px; line-height: 1.45; }
+    select, input[type="number"], input[type="text"] {
+      width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid #dce5dc; border-radius: 10px;
+      color: var(--ink); background: #fbfcfa;
+    }
+    input[type="range"] { width: 100%; accent-color: var(--green); }
+    .range-row { display: flex; align-items: center; gap: 11px; }
+    .range-row input { flex: 1; }
+    output { min-width: 70px; color: var(--green-dark); font-size: 12px; font-weight: 750; text-align: right; }
+    .check-row { display: flex; align-items: center; gap: 9px; color: #46564d; font-size: 12px; }
+    .check-row input { width: 17px; height: 17px; accent-color: var(--green); }
+    .prediction { margin: 4px 0 17px; padding: 13px; border-radius: 13px; background: #f0f6f0; }
+    .prediction label { display: block; margin-bottom: 8px; color: #40564a; font-size: 12px; font-weight: 750; }
+    .prediction select { min-height: 38px; background: white; }
+    .button-row { display: flex; flex-wrap: wrap; gap: 9px; }
+    .btn { min-height: 40px; padding: 9px 14px; border: 1px solid transparent; border-radius: 10px; font-size: 12px; font-weight: 750; }
+    .btn-primary { color: white; background: var(--green); }
+    .btn-primary:hover { background: var(--green-dark); }
+    .btn-secondary { border-color: var(--line); color: #46574d; background: white; }
+    .btn-secondary:hover { background: #f4f7f3; }
+    .right-stack { display: grid; gap: 17px; }
+    .simulation-panel { min-height: 335px; padding: 18px; overflow: hidden; }
+    .sim-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .sim-top h2 { margin: 0; font-size: 14px; }
+    .live-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border-radius: 99px; color: #397454; background: #edf7ef; font-size: 10px; font-weight: 750; }
+    .sim-stage { position: relative; display: grid; place-items: center; min-height: 210px; padding: 16px; overflow: hidden; border: 1px solid #e8eee8; border-radius: 14px; background: radial-gradient(ellipse at 50% 100%, #e8f2e8 0, #f8faf6 64%); }
+    .sim-caption { margin: 12px 2px 0; color: #6a796f; font-size: 11px; line-height: 1.5; }
+    .results { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .result-chip { padding: 7px 10px; border: 1px solid #e5ebe4; border-radius: 9px; color: #46594d; background: #fbfcfa; font-size: 11px; }
+    .result-chip strong { color: #1c6249; }
+    .explanation-panel { padding: 17px 19px; }
+    .explanation-panel h2 { margin: 0 0 8px; font-size: 14px; }
+    .explanation-panel p { margin: 0; color: #5d6e63; font-size: 12px; line-height: 1.7; }
+    .prediction-feedback { margin-top: 9px !important; color: #47745b !important; font-size: 11px !important; }
+    .observation { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line); }
+    .observation label { display: block; margin-bottom: 8px; color: #3e5146; font-size: 11px; font-weight: 750; }
+    .observation select { min-height: 37px; font-size: 11px; }
+    .feedback { min-height: 20px; margin-top: 8px; color: #38714f; font-size: 11px; line-height: 1.5; }
+    .feedback.is-wrong { color: #a64c3c; }
+    .footnote { margin: 16px 2px 0; color: #859189; font-size: 10px; line-height: 1.5; }
+    .mobile-nav { display: none; }
+    /* Simulation artwork */
+    .thermo-wrap { display: flex; align-items: center; gap: 30px; }
+    .thermometer { position: relative; width: 32px; height: 148px; border: 4px solid #d7e1d8; border-radius: 20px; background: #fff; }
+    .thermo-mercury { position: absolute; right: 6px; bottom: 7px; left: 6px; height: 50%; border-radius: 0 0 12px 12px; background: #ec7861; transition: height .25s; }
+    .thermo-bulb { position: absolute; bottom: -16px; left: 50%; width: 30px; height: 30px; border: 4px solid #d7e1d8; border-radius: 50%; background: #ec7861; transform: translateX(-50%); }
+    .thermo-ticks { display: grid; gap: 15px; color: #819087; font-size: 10px; }
+    .beaker { position: relative; width: 150px; height: 120px; border: 3px solid #a9c5c6; border-top: 0; border-radius: 0 0 18px 18px; background: rgba(255,255,255,.5); overflow: hidden; }
+    .water-fill { position: absolute; right: 0; bottom: 0; left: 0; height: 55%; background: #8fc9df; transition: height .3s; }
+    .steam { position: absolute; top: 18px; left: 50%; color: #90a4a0; font-size: 22px; letter-spacing: 8px; transform: translateX(-50%); }
+    .cycle-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 17px; align-items: center; width: 100%; }
+    .cycle-sky { position: relative; min-height: 160px; }
+    .sun { position: absolute; top: 16px; right: 20px; width: 34px; height: 34px; border-radius: 50%; background: #f6c867; box-shadow: 0 0 0 9px #fff3cc; }
+    .cloud { position: absolute; top: 32px; left: 23px; width: 100px; height: 34px; border-radius: 40px; background: white; box-shadow: 0 6px 14px #cbd9d1; }
+    .cloud:before, .cloud:after { position: absolute; bottom: 13px; width: 40px; height: 40px; border-radius: 50%; background: white; content: ""; }
+    .cloud:before { left: 17px; } .cloud:after { right: 14px; }
+    .rain { position: absolute; top: 77px; left: 48px; color: #55a7ca; font-size: 26px; letter-spacing: 10px; opacity: .8; }
+    .rain { animation: rainfall 1.1s linear infinite; }
+    .hill { position: absolute; right: -8px; bottom: 4px; left: 0; height: 52px; border-radius: 70% 70% 0 0; background: #83b98c; }
+    .cycle-sky[data-step="Condensation"] .cloud { animation: cloud-form 1.8s ease-in-out infinite alternate; }
+    .cycle-sky[data-step="Collection"] .hill:after { position: absolute; right: 3px; bottom: 3px; left: 3px; height: 12px; border-radius: 50%; background: #70b8d2; content: ""; }
+    .steam { animation: vapour-rise 1.5s ease-in-out infinite; }
+    @keyframes rainfall { 0% { transform: translateY(-4px); } 100% { transform: translateY(9px); } }
+    @keyframes vapour-rise { 0%, 100% { transform: translate(-50%, 4px); opacity: .35; } 50% { transform: translate(-50%, -5px); opacity: .9; } }
+    @keyframes cloud-form { from { transform: scale(.94); opacity: .75; } to { transform: scale(1.05); opacity: 1; } }
+    .cycle-step { position: absolute; bottom: 10px; left: 10px; padding: 6px 8px; border-radius: 8px; color: #fff; background: #397a60; font-size: 10px; font-weight: 750; }
+    .particle-box { position: relative; width: 100%; height: 175px; border: 1px solid #d9e7dd; border-radius: 12px; background: rgba(255,255,255,.62); overflow: hidden; }
+    .particle { position: absolute; width: 13px; height: 13px; border-radius: 50%; background: #55a982; box-shadow: inset -3px -3px 4px #367753; transition: left .5s, top .5s; }
+    .tray { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 70px; padding: 8px; border: 2px dashed #cfdcd0; border-radius: 12px; background: #f9fbf8; }
+    .seed { width: 19px; height: 14px; border-radius: 50%; background: #8c6844; }
+    .grain { width: 14px; height: 9px; border-radius: 80% 20%; background: #e7c56e; transform: rotate(-20deg); }
+    .mesh { position: absolute; inset: 20px 34px; border: 7px solid #b9c9bf; border-radius: 0 0 18px 18px; background: repeating-linear-gradient(90deg, transparent 0 9px, #d6e0d8 10px 12px); }
+    .drop { position: absolute; width: 11px; height: 15px; border-radius: 60% 40% 55% 50%; background: #6bb5d2; transform: rotate(45deg); }
+    .material-swatch { display: grid; place-items: center; min-width: 135px; min-height: 108px; padding: 14px; border-radius: 18px; box-shadow: 0 10px 20px #3347331b; font-size: 16px; font-weight: 800; text-align: center; }
+    .bars { display: grid; gap: 8px; width: min(100%, 340px); }
+    .bar-line { display: grid; grid-template-columns: 100px 1fr 38px; gap: 8px; align-items: center; font-size: 10px; color: #526459; }
+    .bar-track { height: 9px; border-radius: 9px; background: #e9eee9; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: inherit; background: #5ba47a; }
+    .water-samples { display: flex; align-items: end; gap: 13px; height: 145px; }
+    .sample-jar { display: flex; align-items: center; justify-content: center; width: 64px; height: 75px; border: 2px solid #a7c7c7; border-radius: 5px 5px 12px 12px; background: linear-gradient(transparent 25%, #8fc9df 25%); color: #516e70; font-size: 10px; font-weight: 750; }
+    .soil { width: 130px; overflow: hidden; border-radius: 9px; }
+    .soil div { height: 30px; padding: 8px; color: white; font-size: 10px; }
+    .resource-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; }
+    .resource-card { padding: 10px 13px; border: 1px solid #e0e8e0; border-radius: 11px; background: white; font-size: 11px; }
+    .metal-properties { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; width: 100%; max-width: 400px; }
+    .property-tile { padding: 9px; border-radius: 9px; background: #f2f6f1; font-size: 10px; }
+    .property-tile b { display: block; margin-bottom: 3px; color: #245c45; font-size: 10px; }
+    .indicator { width: 92px; height: 92px; border: 9px solid rgba(255,255,255,.8); border-radius: 50%; background: #a855b5; box-shadow: 0 8px 20px #253c301c; }
+    .ph-scale { display: flex; width: min(100%, 310px); height: 21px; margin-top: 13px; border-radius: 8px; background: linear-gradient(90deg,#e85b58,#ef9a56,#f3d567,#7fba72,#48a8a0,#487bd4,#7446a9); }
+    .ph-marker { position: relative; width: 5px; height: 31px; margin-top: -5px; background: #182b21; }
+    .flame-concept { display: grid; place-items: center; width: 150px; height: 145px; border-radius: 50%; color: #845228; background: radial-gradient(circle,#fff7d9 0 30%,#f6d69d 31% 55%,#e9eee4 56%); font-size: 48px; }
+    .new-substance { padding: 10px 12px; border-radius: 10px; color: #3e684c; background: #edf6ec; font-size: 11px; }
+    .formula { font-family: Georgia, serif; font-size: 23px; font-weight: 700; }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 220px minmax(0, 1fr); }
+      .workspace { grid-template-columns: 1fr; }
+      .right-stack { grid-row: 1; }
+    }
+    @media (max-width: 650px) {
+      .app { display: block; padding-bottom: 65px; }
+      .sidebar { position: static; height: auto; padding: 13px 15px 11px; }
+      .brand { padding: 0 3px; }
+      .brand-mark { width: 35px; height: 35px; }
+      .nav-label, .sidebar-note { display: none; }
+      .class-picker { display: flex; align-items: center; gap: 10px; margin: 11px 3px 4px; }
+      .class-picker label { flex: 0 0 auto; margin: 0; }
+      .class-picker select { width: 155px; min-height: 37px; }
+      .nav-list { display: flex; gap: 7px; margin-top: 12px; padding-bottom: 4px; overflow-x: auto; scrollbar-width: thin; }
+      .nav-item { flex: 0 0 145px; min-height: 45px; padding: 7px; }
+      .nav-num { flex-basis: 24px; height: 24px; }
+      .nav-title { font-size: 10px; }
+      main { padding: 17px 14px 35px; }
+      .topbar { margin-bottom: 20px; }
+      .module-head { align-items: flex-start; }
+      .grade-tag { padding: 7px 9px; font-size: 9px; }
+      .workspace { gap: 13px; }
+      .controls-panel { padding: 16px; }
+      .simulation-panel { min-height: 300px; padding: 13px; }
+      .sim-stage { min-height: 190px; padding: 10px; }
+      .cycle-layout { gap: 8px; }
+      .cycle-sky { transform: scale(.9); }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+  <link rel="stylesheet" href="../smartclass-design-tokens.css">
+  <link rel="stylesheet" href="./paper-lab.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Chemistry lab modules">
+      <div class="brand"><div class="brand-mark" aria-hidden="true">⚗</div><div><strong>Chemistry Lab</strong><small>Curiosity · Classes 6–8</small></div></div>
+      <div id="class-picker"></div>
+      <div id="navigation"></div>
+      <div class="sidebar-note">Explore one idea at a time. Make a prediction, run the model, then describe what you noticed.</div>
+    </aside>
+    <main>
+      <div class="topbar"><div class="crumb">Learning space &nbsp;›&nbsp; Chemistry virtual lab</div><div class="offline-pill"><span class="offline-dot"></span> Works offline</div></div>
+      <div class="content" id="app-content" aria-live="polite"></div>
+    </main>
+  </div>
+  <script src="./translations.js"></script>
+  <script>
+    "use strict";
+    let language = "en";
+    const chemistryI18n = window.CHEMISTRY_I18N;
+    const modules = [
+      { id:"materials", grade:6, title:"Materials Around Us", intro:"Look closely at everyday materials and compare what we can observe and test. A property helps us describe a material; it is not a made-up score.", prediction:"Which material do you think will let light pass through?", choices:["Glass","Wood","Rubber"], answer:"Glass", kind:"materials" },
+      { id:"temperature", grade:6, title:"Temperature and Its Measurement", intro:"Explore how a thermometer responds as temperature changes. Temperature tells us how hot or cold something is—not how much heat it contains.", prediction:"What happens to the Fahrenheit reading when Celsius rises?", choices:["It rises","It falls","It stays the same"], answer:"It rises", kind:"temperature" },
+      { id:"water", grade:6, title:"A Journey Through States of Water", intro:"Follow water through changes of state and the water cycle. The model uses familiar reference points; actual phase-change temperatures can vary with pressure.", prediction:"What is water vapour most likely to do as it cools?", choices:["Condense into liquid droplets","Turn into a solid immediately","Disappear from the water cycle"], answer:"Condense into liquid droplets", kind:"water" },
+      { id:"separation", grade:6, title:"Methods of Separation in Everyday Life", intro:"Choose a method and see how a useful difference between materials helps separate a mixture.", prediction:"Which method is best for removing insoluble solid bits from water?", choices:["Filtration","Winnowing","Handpicking"], answer:"Filtration", kind:"separation" },
+      { id:"resources", grade:6, title:"Nature’s Treasures", intro:"Explore the materials and resources found in nature, from air and water to soil, rocks, minerals, and energy sources.", prediction:"Which one is a renewable energy resource?", choices:["Sunlight","Coal","Petroleum"], answer:"Sunlight", kind:"resources" },
+      { id:"acids", grade:7, title:"Exploring Substances: Acids, Bases, and Neutral", intro:"Indicators give clues about whether a familiar substance is acidic, basic, or neutral. Colour is an observation; exact pH is not assumed for generic samples.", prediction:"What colour does blue litmus turn in an acidic sample?", choices:["Red","Blue","Green"], answer:"Red", kind:"acids" },
+      { id:"metals", grade:7, title:"The World of Metals and Non-metals", intro:"Compare material properties and connect them to everyday uses. Real samples can vary, and alloys are mixtures designed for useful properties.", prediction:"Which property makes many metals useful for electrical wires?", choices:["Electrical conductivity","Transparency","Solubility"], answer:"Electrical conductivity", kind:"metals" },
+      { id:"changes", grade:7, title:"Changes Around Us: Physical and Chemical", intro:"A key question is whether a new substance forms. Explore familiar changes, rusting conditions, and combustion as a safe conceptual model.", prediction:"Does rusting form a new substance?", choices:["Yes","No, only the shape changes","It depends only on the object's size"], answer:"Yes", kind:"changes" },
+      { id:"particles", grade:8, title:"Particulate Nature of Matter", intro:"Matter is made of tiny particles. Their spacing and motion differ in solids, liquids, and gases; the drawings here are simplified and not to scale.", prediction:"How are particles arranged in a solid?", choices:["Close together, vibrating in place","Far apart and moving freely","Absent from the material"], answer:"Close together, vibrating in place", kind:"particles" },
+      { id:"mixtures", grade:8, title:"Elements, Compounds, and Mixtures", intro:"Particle diagrams help distinguish pure substances from mixtures. A mixture has variable composition and no single fixed chemical formula.", prediction:"Which description fits a mixture?", choices:["Different particles together, with variable composition","Only one kind of atom","Atoms chemically joined in one repeating kind of particle"], answer:"Different particles together, with variable composition", kind:"mixtures" },
+      { id:"solutions", grade:8, title:"Solutes, Solvents, and Solutions", intro:"Watch solute particles spread through a solvent. Stirring and temperature can affect dissolving; this qualitative model does not assume specific solubility values.", prediction:"What is the substance that gets dissolved called?", choices:["Solute","Solvent","Solution"], answer:"Solute", kind:"solutions" }
+    ];
+    const initial = {
+      materials:{ item:"Glass", compare:"Wood" }, temperature:{ c:25 },
+      water:{ c:25, step:"Evaporation" }, separation:{ method:"Filtration", mix:55, airflow:50, run:false },
+      resources:{ explore:"Air", resource:"Sunlight" }, acids:{ substance:"Lemon juice", indicator:"Universal indicator" },
+      metals:{ material:"Copper" }, changes:{ change:"Rusting", air:true, water:true, run:false },
+      particles:{ phase:"Liquid", diffusion:45 }, mixtures:{ sample:"Water", type:"Compound" },
+      solutions:{ solute:"Salt", solvent:"Water", stirring:50, temperature:25, soluteMass:"", solutionMass:"" }
+    };
+    const state = Object.fromEntries(Object.entries(initial).map(([k,v])=>[k,{...v, prediction:"", observation:"", attempted:false}]));
+    let active = 0;
+    let selectedGrade = 6;
+    let bound = false;
+    const $ = (selector, root=document) => root.querySelector(selector);
+    const esc = value => String(value).replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+    function localizeDocument(){
+      document.documentElement.lang=language;
+      document.title=chemistryI18n.translate("Chemistry Virtual Lab",language);
+      const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+      const missing=new Set();
+      let node;
+      while((node=walker.nextNode())){
+        if(node.parentElement?.closest("script,style"))continue;
+        if(!Object.prototype.hasOwnProperty.call(node,"chemistryOriginalText"))node.chemistryOriginalText=node.nodeValue||"";
+        const original=node.chemistryOriginalText;
+        const translated=chemistryI18n.translate(original,language);
+        if(translated.startsWith("[[MISSING:"))missing.add(translated);
+        node.nodeValue=translated;
+      }
+      document.querySelectorAll("[aria-label], [title], [placeholder]").forEach(element=>{
+        const attributes=element.chemistryOriginalAttributes||(element.chemistryOriginalAttributes={});
+        for(const name of ["aria-label","title","placeholder"]){
+          if(!element.hasAttribute(name))continue;
+          if(!(name in attributes))attributes[name]=element.getAttribute(name);
+          element.setAttribute(name,chemistryI18n.translate(attributes[name],language));
+        }
+      });
+      window.__CHEMISTRY_MISSING_TRANSLATIONS=[...missing];
+    }
+    function setLocalizedText(element,text){
+      if(!element)return;
+      element.textContent=text;
+      const node=element.firstChild;
+      if(node&&node.nodeType===Node.TEXT_NODE){
+        node.chemistryOriginalText=text;
+        node.nodeValue=chemistryI18n.translate(text,language);
+      }
+    }
+    function renderNav(){
+      const topics=modules.map((module,index)=>({module,index})).filter(item=>item.module.grade===selectedGrade);
+      $("#class-picker").innerHTML=`<div class="class-picker"><label for="class-select">Choose your class</label><select id="class-select" aria-label="Choose your class">${[6,7,8].map(grade=>`<option value="${grade}" ${grade===selectedGrade?"selected":""}>Class ${grade}</option>`).join("")}</select></div>`;
+      $("#navigation").innerHTML=`<div class="nav-label">Class ${selectedGrade} · Curiosity</div><div class="nav-list">${topics.map(({module,index},topicIndex)=>`<button class="nav-item" data-module="${index}" aria-current="${index===active?"page":"false"}"><span class="nav-num">${String(topicIndex+1).padStart(2,"0")}</span><span class="nav-title">${esc(module.title)}</span></button>`).join("")}</div>`;
+    }
+    function field(label, key, options, help=""){
+      const current=state[modules[active].id][key];
+      return `<div class="field"><label for="${key}">${esc(label)}</label><select id="${key}" data-key="${key}">${options.map(x=>`<option value="${esc(x)}" ${x===current?"selected":""}>${esc(x)}</option>`).join("")}</select>${help?`<small>${esc(help)}</small>`:""}</div>`;
+    }
+    function rangeField(label,key,min,max,value,unit="",help=""){
+      return `<div class="field"><label for="${key}">${esc(label)}</label><div class="range-row"><input id="${key}" type="range" min="${min}" max="${max}" value="${value}" data-key="${key}" aria-label="${esc(label)}"><output id="out-${key}" for="${key}">${esc(value)}${unit}</output></div>${help?`<small>${esc(help)}</small>`:""}</div>`;
+    }
+    function checkField(label,key,checked){
+      return `<div class="field"><label class="check-row"><input type="checkbox" data-key="${key}" ${checked?"checked":""}>${esc(label)}</label></div>`;
+    }
+    function controls(m,s){
+      switch(m.kind){
+        case "materials": return field("Material to test","item",["Glass","Wood","Rubber","Copper","Cotton","Plastic"]) + field("Compare it with","compare",["Wood","Glass","Rubber","Copper","Cotton","Plastic"]);
+        case "temperature": return rangeField("Temperature in Celsius","c",-20,120,s.c," °C","Move the slider or use arrow keys.");
+        case "water": return rangeField("Water temperature","c",-20,120,s.c," °C","Reference points shown at normal atmospheric pressure.")+field("Water-cycle stage","step",["Evaporation","Condensation","Precipitation","Collection"]);
+        case "separation": return field("Separation method","method",["Handpicking","Winnowing","Filtration"])+rangeField("Mixture amount","mix",0,100,s.mix,"%")+(s.method==="Winnowing"?rangeField("Air flow","airflow",0,100,s.airflow,"%","Adjust airflow to see light chaff move away."): `<div class="field"><small>${s.method==="Filtration"?"Model a sand-and-water mixture passed through a filter.":"Model a grain mixture with larger visible stones."}</small></div>`);
+        case "resources": return field("Explore a topic","explore",["Air","Water","Soil","Rocks & minerals","Energy resources"])+field("Classify this resource","resource",["Sunlight","Wind","Coal","Petroleum","Natural gas","Water","Copper mineral"]);
+        case "acids": return field("Virtual substance","substance",["Lemon juice","Vinegar","Soap solution","Baking soda solution","Pure water"])+field("Indicator","indicator",["Litmus","Universal indicator"],"Results are qualitative; no exact pH is assigned to these generic samples.");
+        case "metals": return field("Material to compare","material",["Copper","Iron","Aluminium","Sulfur","Graphite","Brass (alloy)"]);
+        case "changes": return field("Change to explore","change",["Rusting","Combustion (conceptual)","Melting ice","Cutting paper"])+(s.change==="Rusting"?checkField("Exposure to air","air",s.air)+checkField("Water or moisture present","water",s.water):`<div class="field"><small>${s.change==="Combustion (conceptual)"?"Conceptual particle model only—no instructions for starting a fire.":"Classify the change by asking whether a new substance forms."}</small></div>`);
+        case "particles": return field("State of matter","phase",["Solid","Liquid","Gas"])+rangeField("Diffusion progress","diffusion",0,100,s.diffusion,"%","Use Run to spread particles from a crowded region.");
+        case "mixtures": return field("Example to classify","sample",["Iron","Water","Air","Salt water","Oil and water"])+field("Show particle model","type",["Element","Compound","Uniform mixture","Non-uniform mixture"]);
+        case "solutions": return field("Solute","solute",["Salt","Sugar","Food colouring"])+field("Solvent","solvent",["Water","Cooking oil"])+rangeField("Stirring","stirring",0,100,s.stirring,"%")+rangeField("Temperature","temperature",0,80,s.temperature," °C")+`<div class="field"><label for="soluteMass">Solute mass (optional)</label><input id="soluteMass" type="number" min="0" step="any" inputmode="decimal" placeholder="e.g. 5" value="${esc(s.soluteMass)}" data-key="soluteMass"><small>For a worked mass-percentage example, also enter total solution mass.</small></div><div class="field"><label for="solutionMass">Total solution mass (optional)</label><input id="solutionMass" type="number" min="0" step="any" inputmode="decimal" placeholder="e.g. 100" value="${esc(s.solutionMass)}" data-key="solutionMass"><small>Total solution mass must be at least the solute mass.</small></div>`;
+      }
+    }
+    function predictionFeedback(m,s){
+      if(!s.attempted)return "";
+      return s.prediction===m.answer
+        ? `Prediction check: ${s.prediction} matches the model’s expected outcome.`
+        : `Prediction check: you chose ${s.prediction}. Compare the model with your prediction and see what you would change next time.`;
+    }
+    function artwork(kind,s){
+      switch(kind){
+        case "materials": {
+          const a=material(s.item), b=material(s.compare);
+          return `<div style="display:flex;align-items:center;justify-content:center;gap:15px;flex-wrap:wrap"><div class="material-swatch" style="background:${a.color}">${esc(a.icon)}<br>${esc(s.item)}</div><span style="color:#75847a;font-weight:800">vs</span><div class="material-swatch" style="background:${b.color}">${esc(b.icon)}<br>${esc(s.compare)}</div></div>`;
+        }
+        case "temperature": return `<div class="thermo-wrap"><div class="thermometer"><div class="thermo-mercury" style="height:${Math.max(3,Math.min(90,(s.c+20)/140*90))}%"></div><div class="thermo-bulb"></div></div><div class="thermo-ticks"><span>120 °C</span><span>100 °C</span><span>0 °C</span><span>−20 °C</span></div><div style="font-size:12px;color:#51665a">Thermometer<br><strong style="font-size:23px;color:#1b7259">${s.c} °C</strong></div></div>`;
+        case "water": {
+          const vapour=s.c>=100, ice=s.c<=0;
+          return `<div class="cycle-layout"><div class="cycle-sky" data-step="${esc(s.step)}"><div class="sun"></div><div class="cloud"></div><div class="rain" style="opacity:${s.step==="Precipitation"?.95:.2}">⋮⋮⋮</div><div class="hill"></div><span class="cycle-step">${esc(s.step)}</span></div><div style="display:grid;justify-items:center;gap:9px"><div class="steam">${s.step==="Evaporation"?"〰 〰 〰":""}</div><div class="beaker"><div class="water-fill" style="height:${ice?"30%":"58%"};background:${ice?"#b8e3f2":"#80c6df"}"></div></div><strong style="font-size:11px">${ice?"Ice":vapour?"Water vapour":"Liquid water"} · ${s.c} °C</strong></div></div>`;
+        }
+        case "separation": {
+          const count=Math.max(1,Math.round(Number(s.mix)/12));
+          if(s.method==="Filtration")return `<div style="position:relative;width:210px;height:175px"><div class="mesh"></div>${Array.from({length:count},(_,i)=>`<span class="seed" style="position:absolute;left:${67+(i%4)*19}px;top:${67+Math.floor(i/4)*11}px"></span>`).join("")}<div class="drop" style="left:93px;top:125px"></div><div class="drop" style="left:117px;top:145px"></div><div style="position:absolute;top:10px;left:55px;color:#5a7264;font-size:11px;font-weight:700">sand + water</div></div>`;
+          if(s.method==="Winnowing")return `<div style="display:grid;gap:16px;width:min(100%,360px)"><div class="tray">${Array.from({length:count},(_,i)=>`<span class="grain"></span>`).join("")}<span style="color:#86938a;font-size:10px">grain mixture</span></div><div style="display:flex;align-items:center;justify-content:space-around;min-height:55px;color:#5d7566;font-size:11px"><span>Heavier grains stay</span><span style="color:#4d89a1;transform:translateX(${Math.round(Number(s.airflow)*.35)}px)">→ Chaff carried by air</span></div><div style="color:#718177;font-size:10px;text-align:center">Air flow ${s.airflow}% · mixture amount ${s.mix}%</div></div>`;
+          return `<div style="display:grid;gap:16px;width:min(100%,360px)"><div class="tray">${Array.from({length:count},(_,i)=>`<span class="${i%3===0?"seed":"grain"}"></span>`).join("")}<span style="color:#86938a;font-size:10px">mixture</span></div><div style="display:flex;justify-content:space-around;color:#5d7566;font-size:11px"><span>Pick visible stones</span><span>Grains remain</span></div><div style="color:#718177;font-size:10px;text-align:center">Mixture amount ${s.mix}%</div></div>`;
+        }
+        case "resources": return resourceArtwork(s.explore);
+        case "acids": {
+          const result=acidResult(s.substance);
+          const color=s.indicator==="Litmus"?(result.class==="Acidic"?"#d95454":result.class==="Basic"?"#4a72bd":"#9360a9"):result.color;
+          return `<div style="display:grid;justify-items:center;gap:9px"><div class="indicator" style="background:${color}"></div><strong style="font-size:13px">${esc(result.class)} · ${esc(s.indicator)}</strong><div style="width:100%"><div class="ph-scale"></div><div style="display:flex;justify-content:space-between;color:#809087;font-size:9px"><span>Acidic</span><span>Neutral</span><span>Basic</span></div></div></div>`;
+        }
+        case "metals": {
+          const m=metal(s.material);
+          return `<div style="display:grid;justify-items:center;gap:12px;width:100%"><div class="material-swatch" style="min-width:105px;min-height:75px;background:${m.color}">${esc(m.icon)}<br>${esc(s.material)}</div><div class="metal-properties">${Object.entries(m.props).map(([k,v])=>`<div class="property-tile"><b>${esc(k)}</b>${esc(v)}</div>`).join("")}</div></div>`;
+        }
+        case "changes": return s.change==="Combustion (conceptual)"?`<div style="display:grid;justify-items:center;gap:10px"><div class="flame-concept" aria-label="Conceptual combustion model">✦</div><div class="new-substance">Reactants rearrange to form new substances</div></div>`:`<div style="display:grid;justify-items:center;gap:13px"><div class="material-swatch" style="background:${s.change==="Rusting"?(s.run&&s.air&&s.water?"#b87450":"#bec8c2"):"#d8ecf1"}">${s.change==="Rusting"?"▰":"◈"}<br>${s.change==="Rusting"?(s.run&&s.air&&s.water?"Rust forming":"Iron"):(s.change==="Melting ice"?"Ice → water":"Paper strips")}</div><div class="new-substance">${s.change==="Rusting"?`Air: ${s.air?"present":"absent"} · Water: ${s.water?"present":"absent"}`:"Model illustration"}</div></div>`;
+        case "particles": return particleBox(s.phase,s.diffusion);
+        case "mixtures": return mixtureDiagram(s.type);
+        case "solutions": return solutionDiagram(s);
+      }
+    }
+    function material(name){
+      return ({Glass:{color:"#d8eff0",icon:"◇"},Wood:{color:"#d9bd98",icon:"▰"},Rubber:{color:"#bac6ba",icon:"●"},Copper:{color:"#d89c70",icon:"▰"},Cotton:{color:"#f1eee5",icon:"✿"},Plastic:{color:"#e5d7ee",icon:"⬡"}})[name];
+    }
+    function materialProps(n){
+      return ({Glass:["Smooth","Shiny","Hard","Transparent","Insoluble"],Wood:["Grainy","Dull","Hard","Opaque","Insoluble"],Rubber:["Smooth","Dull","Flexible","Opaque","Insoluble"],Copper:["Shiny","Lustrous","Hard","Opaque","Insoluble"],Cotton:["Soft","Dull","Soft","Opaque","Absorbs water"],Plastic:["Smooth","Often shiny","Variable","Often opaque","Usually insoluble"]})[n];
+    }
+    function metal(n){
+      const data={
+        Copper:{icon:"▰",color:"#d99768",props:{Lustre:"Shiny",Hardness:"Hard",Malleability:"Can be shaped",Ductility:"Can be drawn into wire",Conductivity:"Good conductor",Use:"Electrical wiring"}},
+        Iron:{icon:"▰",color:"#9da9a1",props:{Lustre:"Metallic shine",Hardness:"Hard",Malleability:"Can be shaped",Ductility:"Can be drawn into wire",Conductivity:"Conducts heat and electricity",Use:"Tools and structures"}},
+        Aluminium:{icon:"▰",color:"#c8d2d3",props:{Lustre:"Shiny when clean",Hardness:"Moderately hard",Malleability:"Can be shaped",Ductility:"Can be drawn into wire",Conductivity:"Good conductor",Use:"Foil and lightweight items"}},
+        Sulfur:{icon:"●",color:"#eadb76",props:{Lustre:"Dull",Hardness:"Brittle",Malleability:"Not malleable",Ductility:"Not ductile",Conductivity:"Poor conductor",Use:"Chemical industry"}},
+        Graphite:{icon:"⬟",color:"#888e89",props:{Lustre:"Dull to slightly shiny",Hardness:"Soft and slippery",Malleability:"Not malleable",Ductility:"Not ductile",Conductivity:"Conducts electricity",Use:"Pencil leads and electrodes"}},
+        "Brass (alloy)":{icon:"▰",color:"#d7bb68",props:{Lustre:"Golden shine",Hardness:"Harder than copper",Malleability:"Can be shaped",Ductility:"Can be worked into forms",Conductivity:"Conducts electricity",Use:"Musical instruments and fittings"}}
+      }; return data[n];
+    }
+    function acidResult(n){
+      return ({
+        "Lemon juice":{class:"Acidic",color:"#e87563"},
+        Vinegar:{class:"Acidic",color:"#ef9563"},
+        "Soap solution":{class:"Basic",color:"#4c79c4"},
+        "Baking soda solution":{class:"Basic",color:"#4fae90"},
+        "Pure water":{class:"Neutral",color:"#7fbf70"}
+      })[n];
+    }
+    function resourceArtwork(topic){
+      if(topic==="Air") return `<div class="bars">${[["Nitrogen",78],["Oxygen",21],["Argon + other gases",1]].map(([l,v])=>`<div class="bar-line"><span>${l}</span><div class="bar-track"><div class="bar-fill" style="width:${v}%"></div></div><b>${v}%</b></div>`).join("")}<small style="color:#7b8980">Approximate composition · totals about 100%</small></div>`;
+      if(topic==="Water") return `<div class="water-samples"><div class="sample-jar">Ice</div><div class="sample-jar" style="height:105px">Liquid</div><div class="sample-jar" style="height:130px;background:linear-gradient(transparent 15%,#d1eaf2 15%);">Vapour</div></div>`;
+      if(topic==="Soil") return `<div class="soil"><div style="background:#73563d">Topsoil</div><div style="background:#aa8055">Subsoil</div><div style="background:#c5a378">Weathered rock</div><div style="background:#847568">Bedrock</div></div>`;
+      if(topic==="Rocks & minerals") return `<div class="resource-grid"><div class="resource-card">🪨 Granite<br><small>Rock: several minerals</small></div><div class="resource-card">✧ Quartz<br><small>Mineral</small></div><div class="resource-card">◈ Copper ore<br><small>Rock containing minerals</small></div></div>`;
+      return `<div class="resource-grid"><div class="resource-card">☀ Sunlight<br><small>Renewable</small></div><div class="resource-card">〰 Wind<br><small>Renewable</small></div><div class="resource-card">⬟ Coal<br><small>Non-renewable</small></div><div class="resource-card">◉ Petroleum<br><small>Non-renewable</small></div></div>`;
+    }
+    function particleBox(phase,progress){
+      const count=30, particles=[];
+      for(let i=0;i<count;i++){
+        let x,y;
+        if(phase==="Solid"){x=22+(i%6)*10+(i%2)*2;y=24+Math.floor(i/6)*13+(i%3)*2;}
+        else if(phase==="Liquid"){x=10+(i*37%78);y=43+(i*29%43);}
+        else {x=5+(i*47%90);y=5+(i*31%88);}
+        if(progress>0&&i<14&&phase!=="Solid"){x=Math.min(92,x+progress*.27);y=Math.max(6,Math.min(88,y+((i%5)-2)*progress*.08));}
+        particles.push(`<span class="particle" style="left:${x}%;top:${y}%;background:${i<Math.round(progress/100*14)?"#e79756":"#55a982"}"></span>`);
+      }
+      return `<div style="width:100%;display:grid;gap:8px"><div style="display:flex;justify-content:space-between;color:#718177;font-size:10px"><span>Crowded region</span><span>Less crowded region</span></div><div class="particle-box">${particles.join("")}</div><div style="display:flex;justify-content:space-between;color:#718177;font-size:10px"><span>${count} drawn particles</span><span>Illustration only · not to scale</span></div></div>`;
+    }
+    function mixtureDiagram(type){
+      const config={
+        Element:["🟢","🟢","🟢","🟢","🟢","🟢"],
+        Compound:["🔵🟠","🔵🟠","🔵🟠","🔵🟠"],
+        "Uniform mixture":["🟢","🟠","🟢","🟠","🟠","🟢"],
+        "Non-uniform mixture":["🟢","🟢","🟢","🟠","🟠","🟠"]
+      }[type];
+      return `<div style="display:grid;justify-items:center;gap:13px"><strong style="font-size:12px">${esc(type)}</strong><div style="display:grid;grid-template-columns:repeat(3,54px);gap:8px;padding:13px;border:1px solid #dce8df;border-radius:13px;background:#fff">${config.map(x=>`<div style="display:grid;place-items:center;height:45px;border-radius:9px;background:#f3f7f2;font-size:16px">${x}</div>`).join("")}</div>${type==="Compound"?`<span class="formula">H<sub>2</sub>O</span><small style="color:#718177">Specific example: water</small>`:`<small style="color:#718177">${type.includes("mixture")?"Mixtures have variable composition; no fixed formula.":"One kind of particle is shown."}</small>`}</div>`;
+    }
+    function solutionDiagram(s){
+      const dissolved=s.solvent==="Water"&&(s.solute==="Salt"||s.solute==="Sugar"||s.solute==="Food colouring");
+      const spread=Math.min(75,Math.round(Number(s.stirring)*.45+Number(s.temperature)*.25));
+      const dots=Array.from({length:20},(_,i)=>{
+        const x=12+(i*31%75), y=15+(i*23%65);
+        const scattered=i<Math.round(spread/5);
+        return `<span class="particle" style="left:${scattered?x:45+(i%3)*4}%;top:${scattered?y:52+(i%4)*4}%;background:${dissolved?"#df9b55":"#9d67a6"}"></span>`;
+      }).join("");
+      return `<div style="width:100%;display:grid;justify-items:center;gap:9px"><div class="beaker" style="width:190px;height:140px"><div class="water-fill" style="height:80%;background:${s.solvent==="Water"?"#aad7df":"#d4c6a9"}"></div><div style="position:absolute;inset:7px">${dots}</div></div><strong style="font-size:11px">${dissolved?"Particles spread through the solvent":"Solute remains visible in this model"}</strong><small style="color:#75847a">Stirring: ${s.stirring}% · Temperature: ${s.temperature} °C · qualitative model, not measured solubility</small></div>`;
+    }
+    function answerText(m,s){
+      if(!s.attempted) return "Choose your settings, make a prediction, then run the simulation to reveal what is happening.";
+      switch(m.kind){
+        case "materials": return `${s.item} is ${materialProps(s.item).join(", ").toLowerCase()}. Compared with ${s.compare}, notice how their visible properties differ. These are descriptions from simple virtual tests, not numerical scores.`;
+        case "temperature": return `The thermometer measures temperature. At ${s.c} °C, the conversion is °F = (9/5 × ${s.c}) + 32 = ${((9/5)*Number(s.c)+32).toFixed(1)} °F. The Fahrenheit value is calculated from the Celsius reading; neither number tells the total heat energy.`;
+        case "water": return `At ${s.c} °C the model shows ${s.c<=0?"ice":s.c>=100?"water vapour":"liquid water"}. In the ${s.step.toLowerCase()} stage, water moves through the cycle. Melting and boiling points depend on conditions such as pressure.`;
+        case "separation": return s.method==="Handpicking"?"Handpicking works when unwanted pieces are large and easy to see and pick out.":s.method==="Winnowing"?`Winnowing uses a difference in mass and how air moves particles. With airflow at ${s.airflow}%, lighter chaff is carried farther than heavier grains.`:"Filtration traps insoluble solid particles in the filter while liquid passes through its openings.";
+        case "resources": return resourceExplanation(s);
+        case "acids": {const r=acidResult(s.substance);return `${s.substance} behaves as ${r.class.toLowerCase()} in this classroom model. ${s.indicator==="Litmus"?(r.class==="Acidic"?"Blue litmus turns red.":r.class==="Basic"?"Red litmus turns blue.":"Litmus shows no acidic or basic change."):"Universal indicator changes colour across acidic, neutral, and basic conditions. No exact pH is assigned to this generic sample."}`;}
+        case "metals": return `${s.material}: ${Object.entries(metal(s.material).props).slice(0,5).map(([k,v])=>`${k.toLowerCase()}—${v.toLowerCase()}`).join("; ")}. ${s.material==="Brass (alloy)"?"Brass is an alloy—a mixture of metals with useful properties, not a single universal formula.":`These properties help explain uses such as ${metal(s.material).props.Use.toLowerCase()}.`}`;
+        case "changes": return s.change==="Rusting"?s.air&&s.water?"With both air and water present, iron can rust over time. Rusting forms a new substance; this model shows conditions qualitatively, not a precise rate.":`With ${!s.air&&!s.water?"air and water absent":!s.air?"air absent":"water absent"}, rusting is greatly limited in this simplified model. No precise reaction rate is implied.`:s.change==="Combustion (conceptual)"?"Combustion is a chemical change: substances react and new substances form. This is a conceptual model only, not a fire-starting activity.":s.change==="Melting ice"?"Melting changes water from solid to liquid; it is a physical change, and the substance remains water.":"Cutting changes the paper's size and shape, but does not make a new substance. It is a physical change.";
+        case "particles": return `${s.phase} particles are ${s.phase==="Solid"?"close together and vibrate around fixed positions":s.phase==="Liquid"?"close together but can move past one another":"far apart and move freely"}. Diffusion spreads particles from a crowded region toward a less crowded one. ${Math.round(Number(s.diffusion)/100*14)} of the 14 highlighted particles are shown spreading. Drawings are simplified and not to scale.`;
+        case "mixtures": return `${s.type}: ${s.type==="Element"?"one kind of atom makes an element.":s.type==="Compound"?"different atoms are chemically joined in a fixed ratio; water is H₂O.":s.type==="Uniform mixture"?"the different particles are evenly spread in the sample.":"the different particles are unevenly spread."} Mixtures have variable composition and no fixed chemical formula.`;
+        case "solutions": return solutionExplanation(s);
+      }
+    }
+    function resourceExplanation(s){
+      const renewable=["Sunlight","Wind","Water"];
+      const classification=renewable.includes(s.resource)?"renewable":"non-renewable";
+      const topics={
+        Air:"Air is a mixture of gases: about 78% nitrogen, 21% oxygen, and roughly 1% argon and other gases.",
+        Water:"Water is found as ice, liquid water, and water vapour. It is continually cycled through the environment.",
+        Soil:"Soil forms layers, commonly including topsoil, subsoil, weathered parent material, and bedrock.",
+        "Rocks & minerals":"Rocks are made of one or more minerals. Minerals are naturally occurring substances with characteristic properties.",
+        "Energy resources":"Sunlight and wind are renewable energy resources; coal, petroleum, and natural gas are non-renewable on human timescales."
+      };
+      return `${topics[s.explore]} ${s.resource} is classified here as ${classification}.`;
+    }
+    function solutionExplanation(s){
+      const a=s.soluteMass.trim(), b=s.solutionMass.trim();
+      if(a!==""||b!==""){
+        const x=Number(a), y=Number(b);
+        if(a===""||b===""||!Number.isFinite(x)||!Number.isFinite(y)||x<0||y<=0||x>y) return "Enter valid masses: both values must be non-negative, total solution mass must be greater than zero, and it cannot be less than the solute mass.";
+        const pct=x/y*100;
+        return `The solute is ${s.solute}; the solvent is ${s.solvent}. Mass percentage = (solute mass ÷ solution mass) × 100 = (${x} g ÷ ${y} g) × 100 = ${pct.toFixed(2)}%. This is a calculated value; mass units cancel.`;
+      }
+      const dissolves=(s.solvent==="Water"&&(s.solute==="Salt"||s.solute==="Sugar"||s.solute==="Food colouring"));
+      return `${s.solute} is the solute (the substance being dissolved); ${s.solvent} is the solvent; together they form a solution when the solute dissolves. ${dissolves?"The model shows solute particles spreading through the solvent.":"This pair does not dissolve well in the qualitative model."} A solution is saturated when no more solute can dissolve under the same conditions, so extra solute remains. Stirring and temperature can affect dissolving; no numerical solubility is assumed.`;
+    }
+    function observationOptions(m,s){
+      switch(m.kind){
+        case "materials": return [`${s.item} and ${s.compare} have different observable properties`,`Both materials must be identical`,`A material's appearance gives its chemical formula`];
+        case "temperature": return ["Fahrenheit rose as Celsius rose","Fahrenheit fell as Celsius rose","A thermometer measured the sample's total heat"];
+        case "water": return ["Water can change state and cycle through the environment","Water vapour is not part of the cycle","The phase-change temperature never depends on pressure"];
+        case "separation": return ["The method uses a difference between mixture components","All methods work by dissolving every solid","The method changes every material into a new substance"];
+        case "resources": return ["Resources can be classified by how they are replenished","Every energy resource is renewable","Air contains only oxygen"];
+        case "acids": return [`${acidResult(s.substance).class} sample gives a characteristic indicator colour`,"Indicators always show the same colour","A generic substance has an exact pH shown here"];
+        case "metals": return ["Properties help determine useful applications","Every metal has identical properties","An alloy always has one universal formula"];
+        case "changes": return [s.change==="Rusting"?(s.air&&s.water?"Air and water allow rusting to occur over time":"Removing a condition limits rusting"):"The model helps distinguish whether a new substance forms","Every change forms a new substance","A physical change always changes chemical identity"];
+        case "particles": return ["Particles spread from crowded toward less crowded regions","Particles in matter are motionless","These drawings are exactly to scale"];
+        case "mixtures": return ["Mixtures can have variable composition","A mixture always has one fixed formula","Every sample contains only one kind of particle"];
+        case "solutions": return ["A solute spreads through a solvent when it dissolves","The solvent is the substance that gets dissolved","Every solute dissolves equally in every solvent"];
+      }
+    }
+    function observationAnswer(m,s){
+      if(m.kind==="acids")return `${acidResult(s.substance).class} sample gives a characteristic indicator colour`;
+      const answers={
+        materials:`${s.item} and ${s.compare} have different observable properties`,
+        temperature:"Fahrenheit rose as Celsius rose",
+        water:"Water can change state and cycle through the environment",
+        separation:"The method uses a difference between mixture components",
+        resources:"Resources can be classified by how they are replenished",
+        metals:"Properties help determine useful applications",
+        changes:s.change==="Rusting"?(s.air&&s.water?"Air and water allow rusting to occur over time":"Removing a condition limits rusting"):"The model helps distinguish whether a new substance forms",
+        particles:"Particles spread from crowded toward less crowded regions",
+        mixtures:"Mixtures can have variable composition",
+        solutions:"A solute spreads through a solvent when it dissolves"
+      };
+      return answers[m.kind];
+    }
+    function liveChips(m,s){
+      switch(m.kind){
+        case "materials": return materialProps(s.item).map((v,i)=>`<span class="result-chip"><strong>${["Appearance","Lustre","Hardness","Transparency","Water test"][i]}:</strong> ${esc(v)}</span>`).join("");
+        case "temperature": return `<span class="result-chip"><strong>Measured:</strong> ${s.c} °C</span><span class="result-chip"><strong>Calculated:</strong> ${((9/5)*Number(s.c)+32).toFixed(1)} °F</span>`;
+        case "water": return `<span class="result-chip"><strong>Temperature:</strong> ${s.c} °C</span><span class="result-chip"><strong>Current state:</strong> ${s.c<=0?"Solid (ice)":s.c>=100?"Gas (water vapour)":"Liquid water"}</span>`;
+        case "resources": return `<span class="result-chip"><strong>${esc(s.resource)}:</strong> ${["Sunlight","Wind","Water"].includes(s.resource)?"Renewable":"Non-renewable"}</span>`;
+        case "acids": return `<span class="result-chip"><strong>Class:</strong> ${acidResult(s.substance).class}</span><span class="result-chip"><strong>Indicator:</strong> ${esc(s.indicator)}</span>`;
+        case "metals": return `<span class="result-chip"><strong>Material:</strong> ${esc(s.material)}</span><span class="result-chip"><strong>Use:</strong> ${esc(metal(s.material).props.Use)}</span>`;
+        case "changes": return `<span class="result-chip"><strong>New substance:</strong> ${s.change==="Rusting"||s.change==="Combustion (conceptual)"?"Yes":"No"}</span><span class="result-chip"><strong>Change:</strong> ${s.change==="Rusting"||s.change==="Combustion (conceptual)"?"Chemical":"Physical"}</span>`;
+        case "particles": return `<span class="result-chip"><strong>State:</strong> ${s.phase}</span><span class="result-chip"><strong>Highlighted spread:</strong> ${Math.round(Number(s.diffusion)/100*14)} / 14</span>`;
+        case "mixtures": return `<span class="result-chip"><strong>Example:</strong> ${esc(s.sample)}</span><span class="result-chip"><strong>Model:</strong> ${esc(s.type)}</span>`;
+        case "solutions": {
+          const exp=solutionExplanation(s);
+          const match=exp.match(/= ([\d.]+)%\./);
+          return `<span class="result-chip"><strong>Solute:</strong> ${esc(s.solute)}</span><span class="result-chip"><strong>Solvent:</strong> ${esc(s.solvent)}</span>${match?`<span class="result-chip"><strong>Mass percentage:</strong> ${match[1]}%</span>`:""}`;
+        }
+        default: return `<span class="result-chip"><strong>Method:</strong> ${esc(s.method)}</span>`;
+      }
+    }
+    function render(){
+      const m=modules[active], s=state[m.id];
+      renderNav();
+      const topics=modules.filter(module=>module.grade===selectedGrade);
+      const topicNumber=topics.findIndex(module=>module.id===m.id)+1;
+      $("#app-content").innerHTML=`<header class="module-head"><div><div class="eyebrow">Class ${m.grade} · Curiosity</div><h1>${esc(m.title)}</h1><p class="subtitle">${esc(m.intro)}</p></div><div class="grade-tag">TOPIC ${String(topicNumber).padStart(2,"0")} / ${topics.length}</div></header>
+        <div class="workspace"><section class="panel controls-panel" aria-label="Simulation controls"><h2 class="panel-title">Set up your experiment <span class="step-tag">01 · Predict</span></h2><div id="controls">${controls(m,s)}</div>
+          <div class="prediction"><label for="prediction">Before you run it, what do you predict?</label><select id="prediction"><option value="">Choose your prediction…</option>${m.choices.map(x=>`<option value="${esc(x)}" ${s.prediction===x?"selected":""}>${esc(x)}</option>`).join("")}</select></div>
+          <div class="button-row"><button class="btn btn-primary" id="run">▶ &nbsp;Run simulation</button><button class="btn btn-secondary" id="reset">Reset</button><button class="btn btn-secondary" id="another">Try another setting</button></div>
+          <p class="footnote">Controls are keyboard and touch accessible. Model outputs are labelled as observations or calculations.</p></section>
+          <div class="right-stack"><section class="panel simulation-panel"><div class="sim-top"><h2>Virtual bench</h2><span class="live-badge"><span class="offline-dot"></span> LIVE MODEL</span></div><div class="sim-stage" id="artwork">${artwork(m.kind,s)}</div><div class="results" id="chips">${liveChips(m,s)}</div><p class="sim-caption" id="caption">${esc(s.attempted?answerText(m,s):"Adjust the controls and make a prediction. Your model updates as you explore.")}</p></section>
+          <section class="panel explanation-panel"><h2>What is happening?</h2><p id="explanation">${esc(answerText(m,s))}</p><p class="prediction-feedback" id="prediction-feedback">${esc(predictionFeedback(m,s))}</p><div class="observation"><label for="observation">After your attempt: what did you observe?</label><select id="observation"><option value="">Choose an observation…</option>${observationOptions(m,s).map(x=>`<option value="${esc(x)}" ${s.observation===x?"selected":""}>${esc(x)}</option>`).join("")}</select><div class="feedback" id="feedback" role="status">${esc(s.observation?(s.observation===observationAnswer(m,s)?"Good observation—you connected what changed to how the model works.":"Not quite. Compare your observation with the live labels and explanation, then try again."):s.attempted?"Choose an observation to check your thinking.":"Run the simulation, then record what you noticed.")}</div></div></section></div></div>`;
+      localizeDocument();
+      bind();
+    }
+    function refresh(){
+      const m=modules[active],s=state[m.id];
+      $("#artwork").innerHTML=artwork(m.kind,s);
+      $("#chips").innerHTML=liveChips(m,s);
+      setLocalizedText($("#caption"),s.attempted?answerText(m,s):"Adjust the controls and make a prediction. Your model updates as you explore.");
+      setLocalizedText($("#explanation"),answerText(m,s));
+      setLocalizedText($("#prediction-feedback"),predictionFeedback(m,s));
+      const obs=$("#observation");
+      if(obs){
+        const old=s.observation;
+        obs.innerHTML=`<option value="">Choose an observation…</option>${observationOptions(m,s).map(x=>`<option ${old===x?"selected":""}>${esc(x)}</option>`).join("")}`;
+        setLocalizedText($("#feedback"),old?(old===observationAnswer(m,s)?"Good observation—you connected what changed to how the model works.":"Not quite. Compare your observation with the live labels and explanation, then try again."):s.attempted?"Choose an observation to check your thinking.":"Run the simulation, then record what you noticed.");
+        $("#feedback").classList.toggle("is-wrong",!!old&&old!==observationAnswer(m,s));
+      }
+      setLocalizedText($("#out-c"),s.c+" °C");
+      setLocalizedText($("#out-airflow"),s.airflow+"%");
+      setLocalizedText($("#out-mix"),s.mix+"%");
+      setLocalizedText($("#out-diffusion"),s.diffusion+"%");
+      setLocalizedText($("#out-stirring"),s.stirring+"%");
+      setLocalizedText($("#out-temperature"),s.temperature+" °C");
+      localizeDocument();
+    }
+    function bind(){
+      if(bound)return;
+      bound=true;
+      $("#app-content").addEventListener("input",onControl);
+      $("#app-content").addEventListener("change",onControl);
+      $("#app-content").addEventListener("click",onClick);
+      $("#navigation").addEventListener("click",onClick);
+      $("#class-picker").addEventListener("change",onClassChange);
+    }
+    function onClassChange(e){
+      if(e.target.id!=="class-select")return;
+      selectedGrade=Number(e.target.value);
+      active=modules.findIndex(module=>module.grade===selectedGrade);
+      render();
+    }
+    function onControl(e){
+      const m=modules[active],s=state[m.id];
+      if(e.target.id==="prediction"){s.prediction=e.target.value;return;}
+      if(e.target.id==="observation"){s.observation=e.target.value;refresh();return;}
+      const key=e.target.dataset.key;if(!key)return;
+      s[key]=e.target.type==="checkbox"?e.target.checked:e.target.value;
+      if((m.kind==="separation"&&key==="method")||(m.kind==="changes"&&key==="change")){s.attempted=false;render();return;}
+      refresh();
+    }
+    function onClick(e){
+      const nav=e.target.closest("[data-module]");
+      if(nav){active=Number(nav.dataset.module);render();return;}
+      if(e.target.closest("#run")){
+        const s=state[modules[active].id];
+        if(!s.prediction){$("#prediction").focus();$("#prediction").setCustomValidity(chemistryI18n.translate("Choose a prediction before running the simulation.",language));$("#prediction").reportValidity();return;}
+        $("#prediction").setCustomValidity("");
+        s.attempted=true;s.observation="";refresh();return;
+      }
+      if(e.target.closest("#reset")){
+        const id=modules[active].id;
+        state[id]={...initial[id],prediction:"",observation:"",attempted:false};render();return;
+      }
+      if(e.target.closest("#another")){
+        const m=modules[active],s=state[m.id];
+        const rotate=(key,values)=>{s[key]=values[(values.indexOf(s[key])+1)%values.length];};
+        if(m.kind==="materials")rotate("item",["Glass","Wood","Rubber","Copper","Cotton","Plastic"]);
+        else if(m.kind==="temperature")s.c=Number(s.c)>=120?-20:Number(s.c)+20;
+        else if(m.kind==="water")rotate("step",["Evaporation","Condensation","Precipitation","Collection"]);
+        else if(m.kind==="separation")rotate("method",["Handpicking","Winnowing","Filtration"]);
+        else if(m.kind==="resources")rotate("resource",["Sunlight","Wind","Coal","Petroleum","Natural gas","Water","Copper mineral"]);
+        else if(m.kind==="acids")rotate("substance",["Lemon juice","Vinegar","Soap solution","Baking soda solution","Pure water"]);
+        else if(m.kind==="metals")rotate("material",["Copper","Iron","Aluminium","Sulfur","Graphite","Brass (alloy)"]);
+        else if(m.kind==="changes")rotate("change",["Rusting","Combustion (conceptual)","Melting ice","Cutting paper"]);
+        else if(m.kind==="particles"){rotate("phase",["Solid","Liquid","Gas"]);s.diffusion=(Number(s.diffusion)+25)%101;}
+        else if(m.kind==="mixtures")rotate("type",["Element","Compound","Uniform mixture","Non-uniform mixture"]);
+        else {rotate("solute",["Salt","Sugar","Food colouring"]);s.stirring=(Number(s.stirring)+25)%101;}
+        s.attempted=false;s.observation="";render();
+      }
+    }
+    function validHostMessage(value){
+      if(!value||typeof value!=="object"||Array.isArray(value))return false;
+      const keys=Object.keys(value).sort();
+      if(keys.length!==3||keys[0]!=="payload"||keys[1]!=="type"||keys[2]!=="version"||value.version!==1)return false;
+      if(value.type!=="CHEMISTRY_HOST_INIT"&&value.type!=="CHEMISTRY_SET_LANGUAGE")return false;
+      const payload=value.payload;
+      if(!payload||typeof payload!=="object"||Array.isArray(payload))return false;
+      const payloadKeys=Object.keys(payload);
+      return payloadKeys.length===1&&payloadKeys[0]==="language"&&(payload.language==="en"||payload.language==="hi");
+    }
+    window.addEventListener("message",event=>{
+      if(event.source!==window.parent||event.origin!==window.location.origin||!validHostMessage(event.data))return;
+      language=event.data.payload.language;
+      render();
+      localizeDocument();
+    });
+    render();
+  </script>
+</body>
+</html>

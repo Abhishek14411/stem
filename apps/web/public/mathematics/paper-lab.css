@@ -1,0 +1,413 @@
+@font-face {
+  font-family: Mukta;
+  font-style: normal;
+  font-weight: 400;
+  src: url("../physics/fonts/mukta-latin-400.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Mukta;
+  font-style: normal;
+  font-weight: 400;
+  src: url("../physics/fonts/mukta-devanagari-400.woff2") format("woff2");
+  unicode-range: U+0900-097F;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Mukta;
+  font-style: normal;
+  font-weight: 600;
+  src: url("../physics/fonts/mukta-latin-600.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Mukta;
+  font-style: normal;
+  font-weight: 600;
+  src: url("../physics/fonts/mukta-devanagari-600.woff2") format("woff2");
+  unicode-range: U+0900-097F;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Mukta;
+  font-style: normal;
+  font-weight: 700;
+  src: url("../physics/fonts/mukta-latin-700.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Mukta;
+  font-style: normal;
+  font-weight: 700;
+  src: url("../physics/fonts/mukta-devanagari-700.woff2") format("woff2");
+  unicode-range: U+0900-097F;
+  font-display: swap;
+}
+
+:root {
+  --wash: var(--paper);
+  --blue: var(--copper-dark);
+  --blue2: var(--spark-soft);
+  --tealwash: var(--teal-soft);
+  --orange: var(--spark);
+  --pink: var(--alert);
+  --shadow: var(--shadow-soft);
+  font-family: var(--font);
+}
+
+html,
+body {
+  min-width: 320px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+}
+
+button,
+input,
+select {
+  font-family: var(--font);
+}
+
+:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 3px;
+}
+
+.shell {
+  grid-template-columns: 252px minmax(0, 1fr);
+  background: var(--paper);
+}
+
+aside {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--white);
+}
+
+.brandmark {
+  border: 2px solid var(--ink);
+  background: var(--spark);
+  color: var(--ink);
+}
+
+.brand strong,
+.brand small,
+.nav-label,
+.grade-button,
+.topic-button,
+.grade-count,
+.topic-button .num {
+  color: var(--white);
+}
+
+.grade-button,
+.topic-button {
+  min-height: 44px;
+  border-radius: var(--r-md);
+}
+
+.grade-button:hover,
+.topic-button:hover {
+  background: var(--teal);
+}
+
+.grade-button.active {
+  background: var(--copper-dark);
+  color: var(--white);
+}
+
+.topic-button.active {
+  background: var(--spark);
+  color: var(--ink);
+}
+
+.topic-button.active .num {
+  color: var(--ink);
+}
+
+.side-progress {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.progress-track {
+  background: var(--line);
+}
+
+.progress-fill {
+  background: var(--teal);
+}
+
+main {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.topbar {
+  color: var(--muted);
+}
+
+.crumb b {
+  color: var(--ink);
+}
+
+.session-pill {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+
+.welcome {
+  border: 2px solid var(--ink);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--depth-lg);
+  color: var(--ink);
+}
+
+.welcome:after {
+  color: var(--spark);
+}
+
+.welcome .eyebrow,
+.welcome p,
+.welcome-meta span {
+  color: var(--muted);
+}
+
+.welcome-meta span {
+  border-color: var(--line);
+}
+
+.activity-title h2,
+.card h3,
+.section-title h2 {
+  color: var(--ink);
+  font-family: var(--font);
+}
+
+.activity-title p,
+.explanation,
+.calc {
+  color: var(--muted);
+}
+
+.topic-icon {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--spark-soft);
+  color: var(--ink);
+}
+
+.topic-tag,
+.step {
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.step b {
+  color: var(--copper-dark);
+}
+
+.card {
+  border: 2px solid var(--ink);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  box-shadow: var(--depth-lg);
+}
+
+.instruction {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--spark-soft);
+  color: var(--ink);
+}
+
+.control label,
+.prediction,
+.question,
+.calc strong {
+  color: var(--ink);
+}
+
+.control output,
+.score {
+  color: var(--teal);
+}
+
+.control select,
+.control input[type="number"],
+.answer-row input {
+  min-height: 48px;
+  border: 2px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.control input[type="range"] {
+  accent-color: var(--teal);
+}
+
+.button,
+.quiz-options button {
+  min-height: 44px;
+  border: 2px solid var(--ink);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font);
+}
+
+.button:hover:not(:disabled),
+.quiz-options button:hover:not(:disabled) {
+  background: var(--spark-soft);
+}
+
+.button.primary {
+  background: var(--copper-dark);
+  border-color: var(--ink);
+  color: var(--white);
+}
+
+.button.primary:hover:not(:disabled) {
+  background: var(--copper);
+}
+
+.calc {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.thinking-card {
+  border-inline-start: 4px solid var(--spark);
+}
+
+.feedback {
+  color: var(--teal);
+}
+
+.feedback.wrong,
+.quiz-feedback.wrong {
+  color: var(--alert);
+}
+
+.quiz-card .qnum {
+  color: var(--copper-dark);
+}
+
+.quiz-options button {
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.quiz-options button.correct {
+  border-color: var(--teal);
+  background: var(--teal-soft);
+  color: var(--ink);
+}
+
+.quiz-options button.incorrect {
+  border-color: var(--alert);
+  background: var(--alert-soft);
+  color: var(--ink);
+}
+
+.quiz-hint {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--spark-soft);
+  color: var(--ink);
+}
+
+.quiz-summary {
+  border: 2px solid var(--teal);
+  border-radius: var(--r-lg);
+  background: var(--teal-soft);
+  color: var(--ink);
+}
+
+.data-table th,
+.data-table td {
+  border-color: var(--line);
+}
+
+.data-table th {
+  background: var(--spark-soft);
+}
+
+.visual svg {
+  font-family: var(--font), sans-serif;
+}
+
+@media (max-width: 680px) {
+  .shell {
+    display: block;
+  }
+
+  aside {
+    position: relative;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    border-right: 0;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .brand strong,
+  .brand small {
+    color: var(--white);
+  }
+
+  .nav-label {
+    margin-top: 8px;
+  }
+
+  .grade-button {
+    display: inline-flex;
+    width: auto;
+    margin: 0 4px 3px 0;
+  }
+
+  .topic-list.mobile-open {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    white-space: normal;
+  }
+
+  .topic-button {
+    width: auto;
+    flex: 0 0 auto;
+    max-width: 240px;
+  }
+
+  main {
+    padding: 16px 13px 40px;
+  }
+
+  .welcome h1,
+  .activity-title h2 {
+    overflow-wrap: anywhere;
+  }
+
+  .activity-head {
+    flex-wrap: wrap;
+  }
+
+  .button-row .button {
+    flex: 1 1 100%;
+  }
+}
